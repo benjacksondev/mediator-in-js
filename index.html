@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mediator</title>
+    <link href="/style.css" type="text/css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.js"></script>
+</head>
+<body>
+<p>
+    Lorem ipsum.
+</p>
+
+<button id="dialogOpen">Show Dialog</button>
+<dialog id="dialog">
+    <label for="fontFamilies"> Font Families</label>
+    <div class="form-control">
+        <select id="fontFamilies" name="font-families">
+            <option value="san-serif">San Serif</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Tahoma">Tahoma</option>
+        </select>
+    </div>
+
+    <div class="form-control">
+        <label for="fontName">Font Name</label>
+        <input id="fontName" name="fontName" value="">
+    </div>
+
+    <button id="ok">OK</button>
+    <button id="cancel">Cancel</button>
+</dialog>
+
+<script>
+    class DialogDirector {
+        constructor() {
+            this._dialog = document.getElementById('dialog');
+        }
+    }
+
+    class FontDialogDirector extends DialogDirector {
+        createWidgets() {
+            this._fontName = new EntryField('fontName', this);
+            this._fontFamilies = new ListBox('fontFamilies', this);
+            this._ok = new Button('ok', this);
+            this._cancel = new Button('cancel', this);
+        }
+
+        change(instance) {
+            if (instance === this._fontFamilies) {
+                this._fontName.setName(this._fontFamilies.selectedItem)
+            }
+
+            if (instance === this._fontName) {
+
+            }
+
+            if (instance === this._ok) {
+                document.getElementsByTagName('body')[0].style.fontFamily = this._fontName.el.value;
+                this._dialog.close();
+            }
+
+            if (instance === this._cancel) {
+                this._dialog.close();
+            }
+        }
+    }
+
+    class Widget {
+        constructor() {
+            // if (this.handleChange === undefined) {
+            //     throw new TypeError("handleChange");
+            // }
+        };
+    }
+
+    class EntryField extends Widget {
+        constructor(elementId, dialogDirector) {
+            super();
+            this.el = document.getElementById(elementId);
+            this.dialogDirector = dialogDirector;
+            this.el.addEventListener('change', this.handleChange);
+        }
+
+        setName(name) {
+            this.el.value = name;
+        }
+
+        handleChange = () => {
+            this.dialogDirector.change(this);
+        }
+    }
+
+    class Button extends Widget {
+        constructor(elementId, dialogDirector) {
+            super();
+            this.el = document.getElementById(elementId);
+            this.dialogDirector = dialogDirector;
+            this.el.addEventListener('click', this.handleChange);
+        }
+
+        handleChange = () => {
+            this.dialogDirector.change(this);
+        }
+    }
+
+    class ListBox extends Widget {
+        _dialogDirector;
+
+        constructor(elementId, dialogDirector) {
+            super();
+            this.el = document.getElementById(elementId);
+            this._dialogDirector = dialogDirector;
+            this.selectedItem = this.el.value;
+            this.el.addEventListener('change', this.handleChange);
+        }
+
+        handleChange = (evt) => {
+            this.selectedItem = evt.target.options[evt.target.selectedIndex].value;
+            this._dialogDirector.change(this);
+        }
+    }
+
+    (dialog = new FontDialogDirector).createWidgets();
+    document.getElementById('dialogOpen').addEventListener('click', (evt) => {
+        dialog._dialog.showModal();
+    });
+</script>
+</body>
+</html>
